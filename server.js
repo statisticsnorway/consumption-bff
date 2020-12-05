@@ -5,8 +5,12 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 
+console.log('loading config from ', process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+const adminConfig = require(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+console.log('loaded config', adminConfig);
+
 admin.initializeApp({
-    credential: admin.credential.cert('./secure/serviceAccountKey.json')
+    credential: admin.credential.cert(adminConfig)
 });
 
 app.use(bodyParser.json());

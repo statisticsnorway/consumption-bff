@@ -4,6 +4,9 @@ services:
   bff:
     build:
       context: ./
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - 3005:3005
+    environment:
+      - FIREBASE_SERVICE_ACCOUNT_JSON=/app/secure/serviceAccountKey.json
+      - FIREBASE_CONFIG_JSON=/app/secure/config.js
