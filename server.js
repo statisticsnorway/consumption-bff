@@ -41,6 +41,7 @@ app.post('/login', (req, res) => {
                 res.cookie('firebaseToken', customToken, { httpOnly: true });
                 res.status(200).send({
                     userInfo: allowedUsers[user],
+                    firebaseToken: customToken,
                 })
             })
     } else {
