@@ -42,7 +42,7 @@ app.post('/login', (req, res) => {
             role: user === 'prabu' ? ['main', 'member'] : ['member']
         })
             .then((customToken) => {
-                res.cookie('firebaseToken', customToken, { httpOnly: true });
+                // res.cookie('firebaseToken', customToken, { httpOnly: true });
                 res.status(200).send({
                     userInfo: allowedUsers[user],
                     firebaseToken: customToken,
