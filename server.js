@@ -5,13 +5,23 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 
-console.log('loading config from ', process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-const adminConfig = require(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-console.log('loaded config', adminConfig);
+const isLocal = () => process.env.DEPLOYMENT_ENV === 'local'
 
-admin.initializeApp({
-    credential: admin.credential.cert(adminConfig)
-});
+
+if (isLocal()) {
+    console.log('loading config from ', process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    const adminConfig = require(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    console.log('loaded config', adminConfig);
+
+    admin.initializeApp({
+        credential: admin.credential.cert(adminConfig)
+    });
+} else {
+    console.log('k8s env detected, auto-detecting config ...')
+    // auto-detect service account
+    // ref: https://firebase.google.com/docs/admin/setup#initialize-without-parameters
+    admin.initializeApp();
+};
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -28,8 +38,8 @@ const checkAdmin = () => {
 };
 
 const allowedUsers = {
-    abc: { id: 'abc', firstName: 'abc', lastName: 'def', email: 'abc.def@abc.def.com' },
-    prabu: { id: 'prabu', firstName: 'prabu', lastName: 'venkat', email: 'p.v@pv.com' },
+    abc: {id: 'abc', firstName: 'abc', lastName: 'def', email: 'abc.def@abc.def.com'},
+    prabu: {id: 'prabu', firstName: 'prabu', lastName: 'venkat', email: 'p.v@pv.com'},
 };
 
 app.post('/login', (req, res) => {
