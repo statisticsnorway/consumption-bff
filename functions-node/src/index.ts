@@ -39,8 +39,9 @@ exports.imageUploadListener = getBucket()
 
       // setup temp download location
       const bucketPath = obj.name as string;
+      const [,fileExtn] = (obj.contentType as string).split('/');
       const fileName = path.basename(bucketPath);
-      const tempFilePath = path.join(os.tmpdir(), fileName);
+      const tempFilePath = path.join(os.tmpdir(), `${fileName}.${fileExtn}`);
 
       // get the bucket!
       const storage = new Storage();
