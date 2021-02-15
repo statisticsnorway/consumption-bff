@@ -33,7 +33,8 @@ if (isLocal()) {
     // ref: https://firebase.google.com/docs/auth/admin/create-custom-tokens#using_a_service_account_id
     console.log('k8s env detected, auto-detecting config ...');
     admin.initializeApp({
-        serviceAccountId: process.env.FIREBASE_SERVICE_ACCOUNT_ID
+        // serviceAccountId: process.env.FIREBASE_SERVICE_ACCOUNT_ID
+        serviceAccountId: 'consumption-bff-wi-forbruk@ssb-team-forbruk-staging.iam.gserviceaccount.com'
     });
 };
 
