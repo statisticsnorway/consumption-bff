@@ -7,20 +7,34 @@ const app = express();
 
 const isLocal = () => process.env.DEPLOYMENT_ENV === 'local'
 
+const protectSecretValue = (val) =>
+    `${val.slice(0, 5)} ... ${val.slice(-5)}`;
 
+const sanitizeConfig = (config) =>
+    Object.keys(config)
+        .reduce((acc, key) => ({
+            ...acc,
+            [key]: protectSecretValue(config[key]),
+        }), {});
+
+
+// Plan A : differentiate local and deployment env
 if (isLocal()) {
     console.log('loading config from ', process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
     const adminConfig = require(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    console.log('loaded config', adminConfig);
+    console.log('loaded config', sanitizeConfig(adminConfig));
 
     admin.initializeApp({
         credential: admin.credential.cert(adminConfig)
     });
 } else {
-    console.log('k8s env detected, auto-detecting config ...')
-    // auto-detect service account
-    // ref: https://firebase.google.com/docs/admin/setup#initialize-without-parameters
-    admin.initializeApp();
+    // Plan A
+    // Using a service account
+    // ref: https://firebase.google.com/docs/auth/admin/create-custom-tokens#using_a_service_account_id
+    console.log('k8s env detected, auto-detecting config ...');
+    admin.initializeApp({
+        serviceAccountId: process.env.FIREBASE_SERVICE_ACCOUNT_ID
+    });
 };
 
 app.use(bodyParser.json());
