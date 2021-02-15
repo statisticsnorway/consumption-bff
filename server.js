@@ -34,7 +34,7 @@ if (isLocal()) {
     console.log('k8s env detected, auto-detecting config ...');
     admin.initializeApp({
         // serviceAccountId: process.env.FIREBASE_SERVICE_ACCOUNT_ID
-        serviceAccountId: 'consumption-bff-wi-forbruk@ssb-team-forbruk-staging.iam.gserviceaccount.com'
+        serviceAccountId: 'firebase-adminsdk-sogo9@ssb-team-forbruk-firebase-stg.iam.gserviceaccount.com'
     });
 };
 
