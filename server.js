@@ -19,7 +19,7 @@ const sanitizeConfig = (config) =>
 
 
 // Plan A : differentiate local and deployment env
-if (isLocal()) {
+// if (isLocal()) {
     console.log('loading config from ', process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
     const adminConfig = require(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
     console.log('loaded config', sanitizeConfig(adminConfig));
@@ -27,16 +27,16 @@ if (isLocal()) {
     admin.initializeApp({
         credential: admin.credential.cert(adminConfig)
     });
-} else {
+// } else {
     // Plan A
     // Using a service account
     // ref: https://firebase.google.com/docs/auth/admin/create-custom-tokens#using_a_service_account_id
-    console.log('k8s env detected, auto-detecting config ...');
-    admin.initializeApp({
+    // console.log('k8s env detected, auto-detecting config ...');
+    // admin.initializeApp({
         // serviceAccountId: process.env.FIREBASE_SERVICE_ACCOUNT_ID
-        serviceAccountId: 'consumption-bff-wi-forbruk@ssb-team-forbruk-staging.iam.gserviceaccount.com'
-    });
-};
+        // serviceAccountId: 'consumption-bff-wi-forbruk@ssb-team-forbruk-staging.iam.gserviceaccount.com'
+    // });
+// };
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
