@@ -60,7 +60,6 @@ const allowedUsers = {
 };
 
 // todo: All of these will be replaced with proper tokens/user access..
-const allowedUsers = {
 const getRole = (userName) => {
     switch (userName) {
         case 'backoffice':
