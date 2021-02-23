@@ -52,9 +52,21 @@ const checkAdmin = () => {
         })
 };
 
+// todo: All of these will be replaced with proper tokens/user access..
 const allowedUsers = {
     abc: {id: 'abc', firstName: 'abc', lastName: 'def', email: 'abc.def@abc.def.com'},
     prabu: {id: 'prabu', firstName: 'prabu', lastName: 'venkat', email: 'p.v@pv.com'},
+    backoffice: { id: 'backoffice', firstName: 'CS', lastName: 'backoffice', email: 'cs.bo@ssb.no'}
+};
+
+// todo: All of these will be replaced with proper tokens/user access..
+const allowedUsers = {
+const getRole = (userName) => {
+    switch (userName) {
+        case 'backoffice':
+        case 'prabu': return 'admin';
+        default: return 'respondent';
+    }
 };
 
 app.post('/login', (req, res) => {
@@ -64,7 +76,7 @@ app.post('/login', (req, res) => {
     if (Object.keys(allowedUsers).includes(user)) {
         // create a custom token
         admin.auth().createCustomToken(user, {
-            role: user === 'prabu' ? ['main', 'member'] : ['member']
+            role: getRole(user)
         })
             .then((customToken) => {
                 res.cookie('firebaseToken', customToken, { httpOnly: true });
