@@ -18,25 +18,13 @@ const sanitizeConfig = (config) =>
         }), {});
 
 
-// Plan A : differentiate local and deployment env
-// if (isLocal()) {
-    console.log('loading config from ', process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    const adminConfig = require(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    console.log('loaded config', sanitizeConfig(adminConfig));
+console.log('loading config from ', process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+const adminConfig = require(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+console.log('loaded config', sanitizeConfig(adminConfig));
 
-    admin.initializeApp({
-        credential: admin.credential.cert(adminConfig)
-    });
-// } else {
-    // Plan A
-    // Using a service account
-    // ref: https://firebase.google.com/docs/auth/admin/create-custom-tokens#using_a_service_account_id
-    // console.log('k8s env detected, auto-detecting config ...');
-    // admin.initializeApp({
-        // serviceAccountId: process.env.FIREBASE_SERVICE_ACCOUNT_ID
-        // serviceAccountId: 'consumption-bff-wi-forbruk@ssb-team-forbruk-staging.iam.gserviceaccount.com'
-    // });
-// };
+admin.initializeApp({
+    credential: admin.credential.cert(adminConfig)
+});
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -56,15 +44,17 @@ const checkAdmin = () => {
 const allowedUsers = {
     abc: {id: 'abc', firstName: 'abc', lastName: 'def', email: 'abc.def@abc.def.com'},
     prabu: {id: 'prabu', firstName: 'prabu', lastName: 'venkat', email: 'p.v@pv.com'},
-    backoffice: { id: 'backoffice', firstName: 'CS', lastName: 'backoffice', email: 'cs.bo@ssb.no'}
+    backoffice: {id: 'backoffice', firstName: 'CS', lastName: 'backoffice', email: 'cs.bo@ssb.no'}
 };
 
 // todo: All of these will be replaced with proper tokens/user access..
 const getRole = (userName) => {
     switch (userName) {
         case 'backoffice':
-        case 'prabu': return 'admin';
-        default: return 'respondent';
+        case 'prabu':
+            return 'admin';
+        default:
+            return 'respondent';
     }
 };
 
@@ -78,9 +68,8 @@ app.post('/login', (req, res) => {
             role: getRole(user)
         })
             .then((customToken) => {
-                res.cookie('firebaseToken', customToken, { httpOnly: true });
                 res.status(200).send({
-                    userInfo: allowedUsers[user],
+                    userInfo: user,
                     firebaseToken: customToken,
                 })
             })
@@ -102,3 +91,4 @@ app.listen(3005, () => {
     console.log('App initialized and running on port 3005');
     checkAdmin();
 });
+
