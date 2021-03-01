@@ -10,6 +10,16 @@ const init = () => {
   INITIALIZED = true;
 };
 
+export const getFirestore = () => {
+  if (!INITIALIZED) {
+    init();
+  }
+
+  return functions
+      .region(CF_REGION)
+      .firestore;
+}
+
 export const getBucket = () => {
   if (!INITIALIZED) {
     init();
