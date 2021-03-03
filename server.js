@@ -62,14 +62,15 @@ app.post('/login', (req, res) => {
     const user = req.body.user;
     const pass = req.body.pass;
 
-    if (Object.keys(allowedUsers).includes(user)) {
+    if (user) {
+        const userName = (user.length > 3) ? user.substring(0, 3) : user;
         // create a custom token
-        admin.auth().createCustomToken(user, {
-            role: getRole(user)
+        admin.auth().createCustomToken(userName, {
+            role: getRole(userName)
         })
             .then((customToken) => {
                 res.status(200).send({
-                    userInfo: user,
+                    userInfo: userName,
                     firebaseToken: customToken,
                 })
             })
