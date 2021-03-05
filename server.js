@@ -85,6 +85,8 @@ const CODE_LIST_ENDPOINT = '/v1/codelist';
 
 app.get('/codelist', (req, res) => {
     const url = `${SURVEY_SERVICE_HOST}${CODE_LIST_ENDPOINT}`;
+    const options = {};
+
     axios.get(url, options)
         .then((result) => {
             console.log('fetched codelist ...');
@@ -99,7 +101,7 @@ app.get('/codelist', (req, res) => {
 app.get('/profile', (req, res) => {
     const token = req.cookies['firebaseToken'];
     if (token) {
-        res.send(200).send('Token received in header');
+        res.status(200).send('Token received in header');
     } else {
         res.status(403).send('Token not found in header');
     }
