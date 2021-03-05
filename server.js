@@ -2,6 +2,7 @@ const express = require('express');
 const admin = require('firebase-admin');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const axios = require('axios');
 
 const app = express();
 
@@ -77,6 +78,22 @@ app.post('/login', (req, res) => {
     } else {
         res.status(403).send({text: `User ${user} not allowed`});
     }
+});
+
+const SURVEY_SERVICE_HOST = 'https://survey-service.staging-bip-app.ssb.no';
+const CODE_LIST_ENDPOINT = '/v1/codelist';
+
+app.get('/codelist', (req, res) => {
+    const url = `${SURVEY_SERVICE_HOST}${CODE_LIST_ENDPOINT}`;
+    axios.get(url, options)
+        .then((result) => {
+            console.log('fetched codelist ...');
+            res.status(200).send(result);
+        })
+        .catch((err) => {
+            console.log('could not fetch codelist...');
+            res.status(500).send(err);
+        })
 });
 
 app.get('/profile', (req, res) => {
