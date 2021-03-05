@@ -89,11 +89,11 @@ app.get('/codelist', (req, res) => {
 
     axios.get(url, options)
         .then((result) => {
-            console.log('fetched codelist ...');
+            console.log('fetched codelist ...', JSON.stringify(result));
             res.status(200).send(result);
         })
         .catch((err) => {
-            console.log('could not fetch codelist...');
+            console.log('could not fetch codelist...', JSON.stringify(err));
             res.status(500).send(err);
         })
 });
