@@ -64,14 +64,13 @@ app.post('/login', (req, res) => {
     const pass = req.body.pass;
 
     if (user) {
-        const userName = (user.length > 3) ? user.substring(0, 3) : user;
         // create a custom token
-        admin.auth().createCustomToken(userName, {
-            role: getRole(userName)
+        admin.auth().createCustomToken(user, {
+            role: getRole(user)
         })
             .then((customToken) => {
                 res.status(200).send({
-                    userInfo: userName,
+                    userInfo: user,
                     firebaseToken: customToken,
                 })
             })
@@ -80,23 +79,7 @@ app.post('/login', (req, res) => {
     }
 });
 
-const SURVEY_SERVICE_HOST = 'https://survey-service.staging-bip-app.ssb.no';
-const CODE_LIST_ENDPOINT = '/v1/codelist';
 
-app.get('/codelist', (req, res) => {
-    const url = `${SURVEY_SERVICE_HOST}${CODE_LIST_ENDPOINT}`;
-    const options = {};
-
-    axios.get(url, options)
-        .then((result) => {
-            console.log('fetched codelist ...', JSON.stringify(result));
-            res.status(200).send(result);
-        })
-        .catch((err) => {
-            console.log('could not fetch codelist...', JSON.stringify(err));
-            res.status(500).send(err);
-        })
-});
 
 app.get('/profile', (req, res) => {
     const token = req.cookies['firebaseToken'];
