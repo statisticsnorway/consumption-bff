@@ -20,6 +20,9 @@ const sanitizeConfig = (config) =>
 
 
 console.log('loading config from ', process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    throw new Error('Please provide a valid firebase service account json (process.env.FIREBASE_SERVICE_ACCOUNT_JSON)');
+}
 const adminConfig = require(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
 console.log('loaded config', sanitizeConfig(adminConfig));
 
