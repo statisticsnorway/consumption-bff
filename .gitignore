@@ -1,5 +1,12 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+functions-py/
+ocr-config.yaml
+
+env/
+
+**/firebase.json
+
 # dependencies
 /node_modules
 /.pnp
@@ -18,6 +25,9 @@ next-env.d.ts
 **/service-worker.js
 **/*.map
 **/workbox-*.js
+
+# assets
+**/assets
 
 # dont know what this is
 worker-development.js

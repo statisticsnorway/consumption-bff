@@ -1,25 +1,16 @@
-// eslint-disable-next-line no-unused-vars
-// import { ObjectMetadata } from 'firebase-functions/lib/providers/storage';
-// eslint-disable-next-line no-unused-vars
-import { Storage } from '@google-cloud/storage';
-import { Firestore } from '@google-cloud/firestore';
-
-const request = require('request-promise');
-const {getFirestore} = require('./setup');
 const path = require('path');
 const os = require('os');
-const fs = require('fs');
+const {getFirestore} = require('./setup');
+import { initiateOcr, NumericBoolean, uploadFile } from './aws';
+
+import { Storage } from '@google-cloud/storage';
+import { Firestore } from '@google-cloud/firestore';
+import { getFileContent } from './utils/fileUtils';
+import { ManagedUpload } from 'aws-sdk/lib/s3/managed_upload';
+import SendData = ManagedUpload.SendData;
 
 const storage = new Storage();
 const firestore = new Firestore();
-
-const {
-    OCR_HOST,
-    DOC_PATH,
-    API_KEY,
-    CLIENT_ID,
-    USER_NAME,
-} = process.env;
 
 enum PurchaseStatus {
     OCR_ERROR = 'OCR_ERROR',
@@ -39,17 +30,13 @@ const dumpObjDetails = (obj: ObjectMetadata) => {
 
  */
 
-const base64EncodeFile = (filePath: string): string => {
-    return fs.readFileSync(filePath, 'base64');
-    // return fileBuf.toString("base64");
-};
 
 exports.onNewReceipt = getFirestore()
     .document('/users/{userId}/receipts/{purchaseId}')
     .onCreate((snap: any, context: any) => {
         const {userId, purchaseId} = context.params;
         const {receiptId, receiptMetadata} = snap.data();
-        const {name, fullPath, bucket} = receiptMetadata;
+        const {name, fullPath, bucket, contentType} = receiptMetadata;
 
         console.log('metadata:', receiptMetadata);
 
@@ -59,13 +46,13 @@ exports.onNewReceipt = getFirestore()
                 const tmpFilePath = path.join(os.tmpdir(), name);
 
                 const storageBucket = storage.bucket(bucket);
-                const base64 = await storageBucket.file(fullPath)
+                const fileContent = await storageBucket.file(fullPath)
                     .download({destination: tmpFilePath})
                     .then(() => {
                         console.log('image downloaded successfully to ', tmpFilePath);
                     })
                     .then(() => {
-                        return base64EncodeFile(tmpFilePath);
+                        return getFileContent(tmpFilePath);
                     })
                     .catch((err: any) => {
                         const msg = `Could not download receipt ...${JSON.stringify(err)}`;
@@ -73,57 +60,50 @@ exports.onNewReceipt = getFirestore()
                         return null;
                     });
 
-                if (!base64) {
+
+                if (!fileContent) {
                     reject('Could not download receipt');
                 } else {
 
-                    console.log('Base64 content', `${(base64).substr(0, 25)}...`);
+                    console.log(`Uploading image content to AWS: (${fileContent.length})`);
 
-                    // setup OCR request
-                    // const fileData = `${obj.contentType};base64;${base64}`;
-                    const formData = {
-                        file_name: tmpFilePath,
-                        boost_mode: 1,
-                        file_data: base64,
-                    };
-                    const options = {
-                        method: 'POST',
-                        uri: `${OCR_HOST}${DOC_PATH}`,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'CLIENT-ID': CLIENT_ID,
-                            'AUTHORIZATION': `apikey ${USER_NAME}:${API_KEY}`,
-                        },
-                        json: formData,
-                    };
+                    await uploadFile(tmpFilePath, contentType, fileContent)
+                        .then(async (uploadInfo: SendData) => {
+                            const {Bucket, Key} = uploadInfo;
 
-                    console.log('Sending: ', JSON.stringify(options));
-                    await request.post(options)
-                        .then((body: any) => {
-                            const purchase = `/users/${userId}/purchases/${purchaseId}`;
-                            firestore.doc(purchase)
-                                .set({
-                                    ocrResults: {
-                                        [receiptId]: body
-                                    },
-                                    status: PurchaseStatus.OCR_COMPLETE
-                                }, {merge: true})
-                                .then(updRes => {
-                                    const msg = `updated purchase ${purchaseId}, ${JSON.stringify(updRes)}`;
-                                    console.log(msg);
-                                    resolve(msg)
+                            const ocrRequestPayload = {
+                                bucket: Bucket,
+                                package_path: Key,
+                                boost_mode: NumericBoolean.TRUE,
+                                auto_delete: 1 as NumericBoolean.TRUE,
+                            };
+
+                            return await initiateOcr(ocrRequestPayload)
+                                .then((body: any) => {
+                                    const purchase = `/users/${userId}/purchases/${purchaseId}`;
+                                    firestore.doc(purchase)
+                                        .set({
+                                            ocrResults: {
+                                                [receiptId]: body
+                                            },
+                                            status: PurchaseStatus.OCR_COMPLETE
+                                        }, {merge: true})
+                                        .then(updRes => {
+                                            const msg = `updated purchase ${purchaseId}, ${JSON.stringify(updRes)}`;
+                                            console.log(msg);
+                                            resolve(msg)
+                                        })
+                                        .catch(err => {
+                                            const msg = `Unable to update ${purchaseId}: ${JSON.stringify(err)}`;
+                                            console.log(msg);
+                                            reject(msg);
+                                        })
                                 })
-                                .catch(err => {
-                                    const msg = `Unable to update ${purchaseId}: ${JSON.stringify(err)}`;
+                                .catch((err: any) => {
+                                    const msg = `OCR Error: ${JSON.stringify(err)}`;
                                     console.log(msg);
                                     reject(msg);
-                                })
-                        })
-                        .catch((err: any) => {
-                            const msg = `OCR Error: ${JSON.stringify(err)}`;
-                            console.log(msg);
-                            reject(msg);
+                                });
                         });
                 }
             } else {
