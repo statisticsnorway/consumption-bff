@@ -63,18 +63,22 @@ const getRole = (userName) => {
 };
 
 app.post('/login', (req, res) => {
-    const user = req.body.user;
-    const pass = req.body.pass;
+    const { respondentInfo } = req.body;
 
-    if (user) {
+    if (respondentInfo) {
+        const { respondentId } = respondentInfo;
         // create a custom token
-        admin.auth().createCustomToken(user, {
-            role: getRole(user)
+        admin.auth().createCustomToken(respondentId, {
+            role: getRole(respondentId)
         })
             .then((customToken) => {
                 res.status(200).send({
-                    userInfo: user,
+                    userInfo: {
+                        user: respondentId,
+                        id: respondentId,
+                    },
                     firebaseToken: customToken,
+                    respondentDetails: respondentInfo,
                 })
             })
     } else {
