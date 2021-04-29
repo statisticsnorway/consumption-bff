@@ -67,22 +67,27 @@ app.post('/login', (req, res) => {
 
     if (respondentInfo) {
         const { respondentId } = respondentInfo;
-        // create a custom token
-        admin.auth().createCustomToken(respondentId, {
-            role: getRole(respondentId)
-        })
-            .then((customToken) => {
-                res.status(200).send({
-                    userInfo: {
-                        user: respondentId,
-                        id: respondentId,
-                    },
-                    firebaseToken: customToken,
-                    respondentDetails: respondentInfo,
-                })
+
+        if (!respondentId) {
+            res.status(403).send({text: `Respondent Info not provided`});
+        } else {
+            // create a custom token
+            admin.auth().createCustomToken(respondentId, {
+                role: getRole(respondentId)
             })
+                .then((customToken) => {
+                    res.status(200).send({
+                        userInfo: {
+                            user: respondentId,
+                            id: respondentId,
+                        },
+                        firebaseToken: customToken,
+                        respondentDetails: respondentInfo,
+                    })
+                });
+        }
     } else {
-        res.status(403).send({text: `User ${user} not allowed`});
+        res.status(403).send({text: `Respondent Info not provided`});
     }
 });
 
