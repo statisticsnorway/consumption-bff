@@ -5,7 +5,7 @@ ocr-config.yaml
 
 env/
 
-**/firebase.json
+**/firebase*.json
 
 # dependencies
 /node_modules

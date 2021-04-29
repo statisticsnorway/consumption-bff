@@ -7,7 +7,13 @@
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
-    "deploy": "tsc && firebase deploy --only functions",
+    "help": "firebase deploy --help",
+		"fb:stg": "firebase --config ../firebase-stg.json use ssb-team-forbruk-firebase-stg",
+		"fb:deploy-stg": "firebase --config ../firebase-stg.json deploy --only functions",
+		"fb:prod": "firebase --config ../firebase-prod.json use ssb-team-forbruk-firebase",
+		"fb:deploy-prod": "firebase --config ../firebase-prod.json deploy --only functions",
+    "deploy:stg": "tsc && npm run fb:stg && npm run fb:deploy-stg",
+    "deploy:prod": "tsc && npm run fb:prod && npm run fb:deploy-prod",
     "logs": "firebase functions:log"
   },
   "engines": {
@@ -18,7 +24,7 @@
     "@google-cloud/storage": "^5.7.4",
     "aws-sdk": "^2.884.0",
     "firebase-admin": "^9.2.0",
-    "firebase-functions": "^3.11.0",
+    "firebase-functions": "^3.13.2",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "uuid": "^8.3.2"
