@@ -62,13 +62,15 @@ const getRole = (userName) => {
     }
 };
 
+const API_KEY = 'x-api-key';
+
 const hasValidApiKey = (req) => {
     if (!process.env.BACKOFFICE_API_KEY) {
         console.log('no backoffice api key configured!');
         return true;
     } else {
         console.log(protectSecretValue(process.env.BACKOFFICE_API_KEY));
-        console.log('request header', req.headers, req.header('API_KEY'));
+        console.log('request header', req.headers, req.get(API_KEY));
         return req.header('API_KEY') === process.env.BACKOFFICE_API_KEY;
     }
 };
