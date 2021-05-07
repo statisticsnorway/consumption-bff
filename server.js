@@ -71,10 +71,15 @@ const hasValidApiKey = (req) => {
         console.log('request header', req.headers(), req.headers('API_KEY'));
         return req.header('API_KEY') === process.env.BACKOFFICE_API_KEY;
     }
-}
+};
+
+// TODO: Read from prcess.env
+const getAuthUrl = () =>
+    // process.env.AUTH_URL;
+    "https://auth-idporten.staging-bip-app.ssb.no";
 
 const hasValidToken = async (idPortenInfo) => {
-    const verifyEP = `${process.env.AUTH_URL}/verify-token`;
+    const verifyEP = `${getAuthUrl()}/verify-token`;
     await axios.post(verifyEP, idPortenInfo, {})
         .then(res => {
             console.log('response', res);
