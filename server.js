@@ -62,35 +62,61 @@ const getRole = (userName) => {
     }
 };
 
-app.post('/login', (req, res) => {
-    const { respondentInfo } = req.body;
+const hasValidApiKey = (req) =>
+    req.header('API_KEY') === process.env.BACKOFFICE_API_KEY;
+
+const hasValidToken = async (idPortenInfo) => {
+    const verifyEP = `${process.env.AUTH_URL}/verify-token`;
+    await axios.post(verifyEP, idPortenInfo, {})
+        .then(res => {
+            console.log('response', res);
+            return true;
+        })
+        .catch(err => {
+            console.log('error', err);
+            return false;
+        })
+};
+
+app.post('/login', async (req, res) => {
+    const {respondentInfo, idPortenInfo} = req.body;
 
     if (respondentInfo) {
-        const { respondentId } = respondentInfo;
+        const {respondentId} = respondentInfo;
 
         if (!respondentId) {
+            console.log('No respondentId .. returning 403');
             res.status(403).send({text: `Respondent Info not provided`});
         } else {
-            // create a custom token
-            admin.auth().createCustomToken(respondentId, {
-                role: getRole(respondentId)
-            })
-                .then((customToken) => {
-                    res.status(200).send({
-                        userInfo: {
-                            user: respondentId,
-                            id: respondentId,
-                        },
-                        firebaseToken: customToken,
-                        respondentDetails: respondentInfo,
+            if (hasValidApiKey(req) || await hasValidToken(idPortenInfo)) {
+                // create a custom token
+                admin.auth().createCustomToken(respondentId, {
+                    role: getRole(respondentId)
+                })
+                    .then((customToken) => {
+                        res.status(200).send({
+                            userInfo: {
+                                user: respondentId,
+                                id: respondentId,
+                            },
+                            firebaseToken: customToken,
+                            respondentDetails: respondentInfo,
+                        })
                     })
-                });
+                    .catch(err => {
+                        console.log('firebase err', err);
+                        res.status(500).send({ text: `Firebase error ${JSON.stringify(err)}`});
+                    });
+            } else {
+                console.log('no API_KEY or valid token, 403');
+                res.status(403).send({text: 'No API_KEY or valid token'})
+            }
         }
     } else {
+        console.log('no respondent info', 403);
         res.status(403).send({text: `Respondent Info not provided`});
     }
 });
-
 
 
 app.get('/profile', (req, res) => {
