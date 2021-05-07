@@ -62,8 +62,16 @@ const getRole = (userName) => {
     }
 };
 
-const hasValidApiKey = (req) =>
-    req.header('API_KEY') === process.env.BACKOFFICE_API_KEY;
+const hasValidApiKey = (req) => {
+    if (!process.env.BACKOFFICE_API_KEY) {
+        console.log('no backoffice api key configured!');
+        return true;
+    } else {
+        console.log(protectSecretValue(process.env.BACKOFFICE_API_KEY));
+        console.log('request header', req.headers(), req.headers('API_KEY'));
+        return req.header('API_KEY') === process.env.BACKOFFICE_API_KEY;
+    }
+}
 
 const hasValidToken = async (idPortenInfo) => {
     const verifyEP = `${process.env.AUTH_URL}/verify-token`;
