@@ -75,10 +75,8 @@ const hasValidApiKey = (req) => {
     }
 };
 
-// TODO: Read from prcess.env
 const getAuthUrl = () =>
-    // process.env.AUTH_URL;
-    "https://auth-idporten.staging-bip-app.ssb.no";
+    process.env.AUTH_URL;
 
 const hasValidToken = async (idPortenInfo) => {
     const verifyEP = `${getAuthUrl()}/verify-token`;
