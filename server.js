@@ -68,7 +68,7 @@ const hasValidApiKey = (req) => {
         return true;
     } else {
         console.log(protectSecretValue(process.env.BACKOFFICE_API_KEY));
-        console.log('request header', req.headers, req.headers('API_KEY'));
+        console.log('request header', req.headers, req.headerx('API_KEY'));
         return req.header('API_KEY') === process.env.BACKOFFICE_API_KEY;
     }
 };
