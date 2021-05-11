@@ -3,8 +3,31 @@ const admin = require('firebase-admin');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const axios = require('axios');
+const cors = require('cors');
 
 const app = express();
+
+const ALLOWED_ORIGINS = [
+    'http://localhost:3005',
+];
+
+app.use(cors({
+    origin: (origin, cb) => {
+        if (!origin) return cb(null, true);
+
+        if (origin.endsWith('.ssb.no')) {
+            return cb(null, true);
+        }
+
+        if (ALLOWED_ORIGINS.indexOf(origin) === -1) {
+            var msg = `CORS policy for ${origin} does not exist.`;
+            return cb(new Error(msg), false);
+        }
+
+        return cb(null, true);
+    }
+}));
+
 
 const isLocal = () => process.env.DEPLOYMENT_ENV === 'local'
 
@@ -91,6 +114,41 @@ const hasValidToken = async (idPortenInfo) => {
         })
 };
 
+const generateCustomToken = async (respondentId) =>
+    admin.auth().createCustomToken(respondentId, {
+        role: getRole(respondentId)
+    });
+
+const BACKOFFICE_UID = 'backoffice'
+/**
+ * Access to this endpoint it controlled by
+ * network- and auth-policies. As on 11.05.2021
+ * only consumption-survey-backoffice is allowed to call this endpoint
+ */
+app.post('/admin-login', async (req, res) => {
+    generateCustomToken(BACKOFFICE_UID)
+        .then((customToken) => {
+            res.status(200).send({
+                userInfo: {
+                    user: BACKOFFICE_UID,
+                    id: BACKOFFICE_UID,
+                },
+                firebaseToken: customToken,
+            })
+        })
+        .catch(err => {
+            console.log('firebase err', err);
+            res.status(500).send({text: `Firebase error ${JSON.stringify(err)}`});
+        });
+});
+
+/**
+ * access to this endpoint is controlled by network- and auth policies.
+ * As on 11.05.2021 this endpoint is open to WWW. A valid idToken from IDPorten
+ * is required for successful issuing of a Firebase token.
+ * As on 11.05.2021 access to the verify-token endpoint is also controlled by
+ * network- and auth policies (on auth-idporten)
+ */
 app.post('/login', async (req, res) => {
     const {respondentInfo, idPortenInfo} = req.body;
 
@@ -101,11 +159,9 @@ app.post('/login', async (req, res) => {
             console.log('No respondentId .. returning 403');
             res.status(403).send({text: `Respondent Info not provided`});
         } else {
-            if (hasValidApiKey(req) || await hasValidToken(idPortenInfo)) {
+            if (await hasValidToken(idPortenInfo)) {
                 // create a custom token
-                admin.auth().createCustomToken(respondentId, {
-                    role: getRole(respondentId)
-                })
+                generateCustomToken(respondentId)
                     .then((customToken) => {
                         res.status(200).send({
                             userInfo: {
@@ -118,11 +174,11 @@ app.post('/login', async (req, res) => {
                     })
                     .catch(err => {
                         console.log('firebase err', err);
-                        res.status(500).send({ text: `Firebase error ${JSON.stringify(err)}`});
+                        res.status(500).send({text: `Firebase error ${JSON.stringify(err)}`});
                     });
             } else {
                 console.log('no API_KEY or valid token, 403');
-                res.status(403).send({text: 'No API_KEY or valid token'})
+                res.status(403).send({text: 'no valid token'})
             }
         }
     } else {
