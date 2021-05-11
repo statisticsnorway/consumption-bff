@@ -102,6 +102,8 @@ const getAuthUrl = () =>
     process.env.AUTH_URL;
 
 const hasValidToken = async (idPortenInfo) => {
+    if (!idPortenInfo) return false;
+
     const verifyEP = `${getAuthUrl()}/verify-token`;
     await axios.post(verifyEP, idPortenInfo, {})
         .then(res => {
@@ -177,7 +179,7 @@ app.post('/login', async (req, res) => {
                         res.status(500).send({text: `Firebase error ${JSON.stringify(err)}`});
                     });
             } else {
-                console.log('no API_KEY or valid token, 403');
+                console.log('no valid token, 403');
                 res.status(403).send({text: 'no valid token'})
             }
         }
