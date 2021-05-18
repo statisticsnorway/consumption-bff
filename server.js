@@ -110,15 +110,13 @@ const hasValidToken = async (idPortenInfo) => {
     };
 
     const verifyEP = `${getAuthUrl()}/verify-token`;
-    await axios.post(verifyEP, tokenInfo, {})
-        .then(res => {
-            console.log('response', res);
-            return true;
-        })
-        .catch(err => {
-            console.log('error', err);
-            return false;
-        })
+    try {
+        const idpResp = await axios.post(verifyEP, tokenInfo, {});
+        return idpResp && (idpResp.status === 200);
+    } catch (err) {
+        console.log('error while verifying token', err);
+        return false;
+    }
 };
 
 const generateCustomToken = async (respondentId) =>
@@ -166,8 +164,9 @@ app.post('/login', async (req, res) => {
             console.log('No respondentId .. returning 403');
             res.status(403).send({text: `Respondent Info not provided`});
         } else {
-            if (await hasValidToken(idPortenInfo)) {
-                // create a custom token
+            const validToken = await hasValidToken(idPortenInfo);
+            if (validToken) {
+                // create a custom firebase token
                 generateCustomToken(respondentId)
                     .then((customToken) => {
                         res.status(200).send({
