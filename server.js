@@ -98,14 +98,19 @@ const hasValidApiKey = (req) => {
     }
 };
 
-const getAuthUrl = () => 'http://auth-idporten.forbruk.svc.cluster.local';
-    /* process.env.AUTH_URL; */
+const getAuthUrl = () =>
+    process.env.AUTH_URL;
 
 const hasValidToken = async (idPortenInfo) => {
     if (!idPortenInfo) return false;
+    const { accessToken, idToken } = idPortenInfo;
+    const tokenInfo = {
+        accessToken: accessToken.tokenValue,
+        idToken: idToken.tokenValue,
+    };
 
     const verifyEP = `${getAuthUrl()}/verify-token`;
-    await axios.post(verifyEP, idPortenInfo, {})
+    await axios.post(verifyEP, tokenInfo, {})
         .then(res => {
             console.log('response', res);
             return true;
