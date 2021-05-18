@@ -3,6 +3,7 @@ name: $(Build.SourceBranch)-$(date:yyyyMMdd)$(rev:.r)
 trigger:
   branches:
     include:
+      - develop
       - master
   tags:
     include:
