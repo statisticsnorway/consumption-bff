@@ -99,7 +99,8 @@ const hasValidApiKey = (req) => {
 };
 
 const getAuthUrl = () =>
-    process.env.AUTH_URL;
+    'http://auth-idporten.forbruk.svc.cluster.local';
+    /* process.env.AUTH_URL; */
 
 const hasValidToken = async (idPortenInfo) => {
     if (!idPortenInfo) return false;
