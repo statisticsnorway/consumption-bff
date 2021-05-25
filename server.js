@@ -7,12 +7,17 @@ const cors = require('cors');
 
 const app = express();
 
+// Enable enable pre-flight across the board
+app.options('*', cors());
+
 const ALLOWED_ORIGINS = [
     'http://localhost:3005',
 ];
 
 app.use(cors({
     origin: (origin, cb) => {
+        console.log('Evaluating CORS for origin', origin);
+
         if (!origin) return cb(null, true);
 
         if (origin.endsWith('.ssb.no')) {
