@@ -152,6 +152,13 @@ app.post('/admin-login', async (req, res) => {
         });
 });
 
+app.post('/logger', async (req, res) => {
+   const { body } = req;
+   console.log("log request", body);
+
+   res.status(200).send("OK");
+});
+
 /**
  * access to this endpoint is controlled by network- and auth policies.
  * As on 11.05.2021 this endpoint is open to WWW. A valid idToken from IDPorten
