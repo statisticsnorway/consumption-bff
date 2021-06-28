@@ -7,12 +7,17 @@ const cors = require('cors');
 
 const app = express();
 
+// Enable enable pre-flight across the board
+app.options('*', cors());
+
 const ALLOWED_ORIGINS = [
     'http://localhost:3005',
 ];
 
 app.use(cors({
     origin: (origin, cb) => {
+        console.log('Evaluating CORS for origin', origin);
+
         if (!origin) return cb(null, true);
 
         if (origin.endsWith('.ssb.no')) {
@@ -145,6 +150,13 @@ app.post('/admin-login', async (req, res) => {
             console.log('firebase err', err);
             res.status(500).send({text: `Firebase error ${JSON.stringify(err)}`});
         });
+});
+
+app.post('/logger', async (req, res) => {
+   const { body } = req;
+   console.log("log request", body);
+
+   res.status(200).send("OK");
 });
 
 /**
